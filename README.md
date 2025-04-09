@@ -8,3 +8,13 @@ To support data preprocessing and feature extraction, FFmpeg needs to be install
 
 For Windows users, download the latest FFmpeg release from the official site https://ffmpeg.org/download.html, extract the ZIP file, and add the bin folder to your system's PATH environment variable.
 
+**Folder structure**
+
+static
+
+-background1.png, styles.css
+
+templates
+
+-index.html
+
