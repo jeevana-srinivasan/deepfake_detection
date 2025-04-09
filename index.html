@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Deepfake Detector</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="overlay container my-5 p-4 rounded shadow"> 
+        <h1 class="title text-center mb-4">Deepfake Detector</h1>
+    
+        <div id="upload-section" class="upload-container p-4 mb-4 text-center">
+            <div class="d-flex justify-content-center align-items-center gap-3" style="height: 40px;">
+                <p class="para mb-0 d-flex align-items-center" style="font-size: 1.2rem; font-weight: bold; color: #ddd; height: 100%;">
+                    Drag and Drop your video here
+                </p>
+        
+                <input type="file" id="fileElem" accept="video/*" onchange="handleFiles(this.files)" style="display: none;">
+                <label for="fileElem" class="btn btn-outline-light d-flex align-items-center justify-content-center" style="height: 100%;">
+                    Select a file
+                </label>
+            </div>
+    
+            <video id="video-preview" controls class="mt-4" style="display: none;"></video>
+    
+            <div class="text-center">
+                <button id="predictBtn" class="btn-predict btn-lg mt-4" style="display:none;" onclick="predict(event)">Predict</button>
+            </div>
+        </div>
+    </div>
+    
+    <div id="predictionSection" style="display: none;">
+        <div id="predictionResult" style="font-size: 24px;"></div>
+    </div>
+    
+    <div id="chooseAnotherContainer" style="display: none; text-align: center; margin-top: 20px;">
+        <button id="chooseAnotherBtn" onclick="chooseAnother()" style="padding: 10px 20px; border-radius: 12px;font-weight: bold;margin-top: 15px; background-color: #5a0b7e; color: white; border: none; font-size: 16px; cursor: pointer;">
+          Choose Another Video
+        </button>
+      </div>      
+
+<script>
+let dropArea = document.getElementById('upload-section');
+let predictionSection = document.getElementById('predictionSection');
+let predictionResult = document.getElementById('predictionResult');
+let videoPreview = document.getElementById('video-preview');
+let predictBtn = document.getElementById('predictBtn');
+let selectedFile = null; 
+
+['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+    dropArea.addEventListener(eventName, preventDefaults, false);
+});
+
+function preventDefaults(e) {
+    e.preventDefault();
+    e.stopPropagation();
+}
+
+dropArea.addEventListener('drop', handleDrop, false);
+
+function handleDrop(e) {
+    let dt = e.dataTransfer;
+    let files = dt.files;
+    handleFiles(files);
+}
+
+function handleFiles(files) {
+    if (files.length > 0) {
+        const file = files[0];
+
+        // Check if file is .mp4
+        if (file.type !== 'video/mp4') {
+            alert("Please provide video in .mp4 format only!");
+            return; // Stop further processing
+        }
+
+        selectedFile = file;  // Save the file globally
+        const url = URL.createObjectURL(file);
+        videoPreview.src = url;
+        videoPreview.style.display = 'block';
+
+        videoPreview.onloadeddata = function() {
+            predictBtn.style.display = 'inline-block';
+        };
+    }
+}
+
+function predict() {
+    const formData = new FormData();
+    formData.append('file', selectedFile);
+
+    fetch('/predict', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        // SHOW prediction section
+        predictionSection.style.display = 'block';
+        videoPreview.style.display = 'none';
+        dropArea.style.display = 'none';  // Assuming you wrap upload input inside <div id="uploadSection">
+
+        if (data.prediction === "REAL") {
+            predictionResult.innerHTML = `<span class="real-flutter">REAL</span>`;
+            predictionResult.className = 'real-background';
+        } else {
+            predictionResult.innerHTML = `<span class="fake-flutter">FAKE</span>`;
+            predictionResult.className = 'fake-background';
+        }
+
+        // Show "Choose another video" button
+        document.getElementById('chooseAnotherContainer').style.display = 'block';
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('An error occurred while predicting.');
+    });
+}
+
+function chooseAnother() {
+    // Reset everything
+    selectedFile = null;
+    dropArea.style.display = 'block';
+    predictionSection.style.display = 'none';
+    chooseAnotherContainer.style.display = 'none';
+    videoPreview.src = '';
+    videoPreview.style.display = 'none';
+    predictBtn.style.display = 'none';
+}
+
+</script>
+
+</body>
+</html>
