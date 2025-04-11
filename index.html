@@ -1,135 +1,164 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>Deepfake Detector</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <meta charset="UTF-8">
+  <title>FakeBuster</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700&display=swap" rel="stylesheet">
+  <link rel="icon" type="image/png" href="{{ url_for('static', filename='favicon.png') }}">
 </head>
+
 <body>
-    <div class="overlay container my-5 p-4 rounded shadow"> 
-        <h1 class="title text-center mb-4">Deepfake Detector</h1>
-    
-        <div id="upload-section" class="upload-container p-4 mb-4 text-center">
-            <div class="d-flex justify-content-center align-items-center gap-3" style="height: 40px;">
-                <p class="para mb-0 d-flex align-items-center" style="font-size: 1.2rem; font-weight: bold; color: #ddd; height: 100%;">
-                    Drag and Drop your video here
-                </p>
-        
-                <input type="file" id="fileElem" accept="video/*" onchange="handleFiles(this.files)" style="display: none;">
-                <label for="fileElem" class="btn btn-outline-light d-flex align-items-center justify-content-center" style="height: 100%;">
-                    Select a file
-                </label>
-            </div>
-    
-            <video id="video-preview" controls class="mt-4" style="display: none;"></video>
-    
-            <div class="text-center">
-                <button id="predictBtn" class="btn-predict btn-lg mt-4" style="display:none;" onclick="predict(event)">Predict</button>
-            </div>
-        </div>
+  <div id="loadingSpinner" class="spinner-overlay" style="display: none;">
+    <div class="spinner-border text-light" style="width: 4rem; height: 4rem;" role="status">
+      <span class="visually-hidden">Loading...</span>
     </div>
-    
-    <div id="predictionSection" style="display: none;">
-        <div id="predictionResult" style="font-size: 24px;"></div>
+    <p class="text-light mt-3">Analyzing video...</p>
+  </div>
+
+  <div class="overlay container my-5 p-5 rounded shadow">
+    <h1 class="title text-center mb-5">FakeBuster</h1>
+
+    <div id="upload-section" class="upload-container p-5 text-center">
+      <div class="d-flex justify-content-center align-items-center flex-column flex-md-row gap-3">
+        <p class="para mb-0">Drag and Drop your video here</p>
+        <input type="file" id="fileElem" accept="video/mp4" onchange="handleFiles(this.files)" style="display: none;">
+        <label for="fileElem" class="btn btn-outline-light">Select a file</label>
+      </div>
+
+      <video id="video-preview" controls class="mt-4 w-100 rounded" style="display: none; max-height: 300px;"></video>
+
+      <div class="text-center">
+        <button id="predictBtn" class="btn-predict mt-4" style="display: none;" onclick="predict(event)">Predict</button>
+      </div>
     </div>
-    
-    <div id="chooseAnotherContainer" style="display: none; text-align: center; margin-top: 20px;">
-        <button id="chooseAnotherBtn" onclick="chooseAnother()" style="padding: 10px 20px; border-radius: 12px;font-weight: bold;margin-top: 15px; background-color: #5a0b7e; color: white; border: none; font-size: 16px; cursor: pointer;">
-          Choose Another Video
-        </button>
-      </div>      
+  </div>
 
-<script>
-let dropArea = document.getElementById('upload-section');
-let predictionSection = document.getElementById('predictionSection');
-let predictionResult = document.getElementById('predictionResult');
-let videoPreview = document.getElementById('video-preview');
-let predictBtn = document.getElementById('predictBtn');
-let selectedFile = null; 
+  <div id="predictionSection" class="text-center" style="display: none;">
+    <div id="predictionResult" class="mt-4"></div>
+  </div>
 
-['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
-    dropArea.addEventListener(eventName, preventDefaults, false);
-});
+  <div id="chooseAnotherContainer" class="text-center" style="display: none; margin-top: 20px;">
+    <button id="chooseAnotherBtn" onclick="chooseAnother()" class="btn btn-outline-light mt-3 px-4 py-2 rounded-pill fw-semibold">
+      Choose Another Video
+    </button>
+  </div>
 
-function preventDefaults(e) {
-    e.preventDefault();
-    e.stopPropagation();
-}
+  <script>
+    let dropArea = document.getElementById('upload-section');
+    let predictionSection = document.getElementById('predictionSection');
+    let predictionResult = document.getElementById('predictionResult');
+    let videoPreview = document.getElementById('video-preview');
+    let predictBtn = document.getElementById('predictBtn');
+    let loadingSpinner = document.getElementById('loadingSpinner');
+    let selectedFile = null;
 
-dropArea.addEventListener('drop', handleDrop, false);
+    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+      dropArea.addEventListener(eventName, preventDefaults, false);
+    });
 
-function handleDrop(e) {
-    let dt = e.dataTransfer;
-    let files = dt.files;
-    handleFiles(files);
-}
+    function preventDefaults(e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
 
-function handleFiles(files) {
-    if (files.length > 0) {
+    dropArea.addEventListener('drop', handleDrop, false);
+
+    function handleDrop(e) {
+      let dt = e.dataTransfer;
+      let files = dt.files;
+      handleFiles(files);
+    }
+
+    function handleFiles(files) {
+      if (files.length > 0) {
         const file = files[0];
-
-        // Check if file is .mp4
         if (file.type !== 'video/mp4') {
-            alert("Please provide video in .mp4 format only!");
-            return; // Stop further processing
+          alert("Please provide video in .mp4 format only!");
+          return;
         }
 
-        selectedFile = file;  // Save the file globally
-        const url = URL.createObjectURL(file);
-        videoPreview.src = url;
-        videoPreview.style.display = 'block';
+        selectedFile = file;
 
-        videoPreview.onloadeddata = function() {
+        // Upload immediately to server to re-encode
+        const formData = new FormData();
+        formData.append('file', selectedFile);
+
+        fetch('/upload_and_reencode', {
+          method: 'POST',
+          body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+          if (data.success) {
+            const reencodedUrl = data.reencoded_url;
+            videoPreview.src = reencodedUrl;
+            videoPreview.style.display = 'block';
+            videoPreview.style.opacity = '0';
+            videoPreview.offsetHeight; 
+            videoPreview.style.animation = 'fadeScaleIn 0.8s ease-out forwards';
             predictBtn.style.display = 'inline-block';
-        };
+          } else {
+            alert("Error during upload/re-encoding: " + data.error);
+          }
+        })
+        .catch(error => {
+          console.error('Error:', error);
+          alert("An error occurred during upload.");
+        });
+      }
     }
-}
 
-function predict() {
-    const formData = new FormData();
-    formData.append('file', selectedFile);
+    function predict() {
+      const formData = new FormData();
+      formData.append('file', selectedFile);
 
-    fetch('/predict', {
+      loadingSpinner.style.display = 'flex';
+
+      fetch('/predict', {
         method: 'POST',
         body: formData
-    })
-    .then(response => response.json())
-    .then(data => {
-        // SHOW prediction section
-        predictionSection.style.display = 'block';
-        videoPreview.style.display = 'none';
-        dropArea.style.display = 'none';  // Assuming you wrap upload input inside <div id="uploadSection">
+      })
+        .then(response => response.json())
+        .then(data => {
+            loadingSpinner.style.display = 'none';
+            predictionSection.style.display = 'block';
+            videoPreview.style.display = 'none';
+            dropArea.style.display = 'none';
 
-        if (data.prediction === "REAL") {
-            predictionResult.innerHTML = `<span class="real-flutter">REAL</span>`;
-            predictionResult.className = 'real-background';
-        } else {
-            predictionResult.innerHTML = `<span class="fake-flutter">FAKE</span>`;
-            predictionResult.className = 'fake-background';
-        }
+            let explanation = `<div class="reason-text mt-3">${data.explanation}</div>`;
 
-        // Show "Choose another video" button
-        document.getElementById('chooseAnotherContainer').style.display = 'block';
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        alert('An error occurred while predicting.');
-    });
-}
+            const isReal = data.prediction === "REAL";
+            predictionResult.innerHTML = `<span class="${isReal ? 'real-flutter' : 'fake-flutter'}">${isReal ? 'REAL' : 'FAKE'}</span>${explanation}`;
+            predictionResult.className = isReal ? 'real-background' : 'fake-background';
 
-function chooseAnother() {
-    // Reset everything
-    selectedFile = null;
-    dropArea.style.display = 'block';
-    predictionSection.style.display = 'none';
-    chooseAnotherContainer.style.display = 'none';
-    videoPreview.src = '';
-    videoPreview.style.display = 'none';
-    predictBtn.style.display = 'none';
-}
+          document.getElementById('chooseAnotherContainer').style.display = 'block';
+        })
+        .catch(error => {
+            console.log(error);
+          loadingSpinner.style.display = 'none';
+          alert('An error occurred while predicting.');
+          console.error(error);
+        });
+    }
 
-</script>
+    function chooseAnother() {
+      selectedFile = null;
+      dropArea.style.display = 'block';
+      predictionSection.style.display = 'none';
+      document.getElementById('chooseAnotherContainer').style.display = 'none';
+      videoPreview.src = '';
+      videoPreview.style.display = 'none';
+      predictBtn.style.display = 'none';
+    }
 
+    window.onload = () => {
+      const spinner = document.getElementById('loadingSpinner');
+      if (spinner) {
+        spinner.style.display = 'none';
+      }
+    };
+  </script>
 </body>
 </html>
