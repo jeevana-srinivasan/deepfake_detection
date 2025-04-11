@@ -10,8 +10,6 @@ from fused_predict import predict_fused_model
 
 app = Flask(__name__, template_folder='templates', static_folder='static')
 
-FFMPEG_PATH = r"C:\Users\srins\Documents\JeevanaSrinivasan\8th sem\major_project\ffmpeg\ffmpeg\bin\ffmpeg.exe"
-
 # Upload folder
 UPLOAD_FOLDER = 'uploads'
 REENCODED_FOLDER = 'reencoded'
@@ -43,6 +41,16 @@ def log_prediction(filename, result):
             writer.writerow(["Timestamp", "Filename", "Prediction",
                              "Video_Real", "Video_Fake", "Audio_Real", "Audio_Fake"])
         writer.writerow(row)
+
+def clear_reencoded_folder():
+    reencoded_folder = 'reencoded'
+    try:
+        for filename in os.listdir(reencoded_folder):
+            file_path = os.path.join(reencoded_folder, filename)
+            if os.path.isfile(file_path):
+                os.remove(file_path)
+    except Exception as e:
+        print(f"Error clearing reencoded files: {e}")
 
 @app.route('/')
 def home():
@@ -94,6 +102,9 @@ def predict():
         video_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
         file.save(video_path)
 
+        print("video path:", video_path)
+        clear_reencoded_folder()
+        
         result = predict_fused_model(video_path)
         log_prediction(filename, result)
 
@@ -102,22 +113,12 @@ def predict():
 
         if "error" in result:
             return jsonify({'error': result['error']}), 500
-        
-        reencoded_folder = 'reencoded'
-        try:
-            for filename in os.listdir(reencoded_folder):
-                file_path = os.path.join(reencoded_folder, filename)
-                if os.path.isfile(file_path):
-                    os.remove(file_path)
-        except Exception as e:
-            print(f"Error clearing reencoded files: {e}")
 
         #return jsonify({'prediction': result['predicted_label'].upper()})
         return jsonify({
             'prediction': result['predicted_label'].upper(),
             'explanation': result['explanation']
         })
-
 
 @app.route('/logs')
 def view_logs():
