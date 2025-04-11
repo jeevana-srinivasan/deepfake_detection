@@ -80,7 +80,6 @@
         }
 
         selectedFile = file;
-
         // Upload immediately to server to re-encode
         const formData = new FormData();
         formData.append('file', selectedFile);
@@ -136,7 +135,6 @@
           document.getElementById('chooseAnotherContainer').style.display = 'block';
         })
         .catch(error => {
-            console.log(error);
           loadingSpinner.style.display = 'none';
           alert('An error occurred while predicting.');
           console.error(error);
