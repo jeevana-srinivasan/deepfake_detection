@@ -18,7 +18,11 @@
   </div>
 
   <div class="overlay container my-5 p-5 rounded shadow">
-    <h1 class="title text-center mb-5">FakeBuster</h1>
+    <div class="title-wrapper mb-5">
+      <img src="{{ url_for('static', filename='logo.png') }}" alt="Logo" class="logo-img me-3">
+      <h1 class="title mb-0">FakeBuster</h1>
+    </div>
+
 
     <div id="upload-section" class="upload-container p-5 text-center">
       <div class="d-flex justify-content-center align-items-center flex-column flex-md-row gap-3">
