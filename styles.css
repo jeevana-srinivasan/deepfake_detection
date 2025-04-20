@@ -1,45 +1,73 @@
 body {
     margin: 0;
     padding: 0;
-    background: url('/static/background1.png') no-repeat center center fixed;
+    background: url("/static/background1.png") no-repeat center center fixed;
     background-size: cover;
-    font-family: 'Segoe Print', cursive;
+    font-family: 'Segoe UI', sans-serif;
 }
 
+/* Container overlay */
 .overlay {
     background-color: rgba(0, 0, 0, 0.5);
-    border-radius: 15px;
+    border-radius: 35px;
 }
 
+.logo-img{
+    height: 6rem; /* Adjust to fit title size */
+    width: auto;
+    animation: fadeScaleIn 0.8s ease-out forwards;
+    border: 3px solid white;
+    border-radius: 20px; /* rounded rectangle */
+    background-color: transparent;
+}
+
+.title-wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+}
+
+
+/* Main Title */
 .title {
-    font-size: 60px;
+    font-size: 5rem;
     font-weight: bold;
     color: white;
-    text-shadow: 
-        -2px -2px 0 #000, 
-         2px -2px 0 #000, 
-        -2px  2px 0 #000, 
+    text-align: center;
+    text-shadow:
+        -2px -2px 0 #000,
+         2px -2px 0 #000,
+        -2px  2px 0 #000,
          2px  2px 0 #000,
          0 0 10px purple,
          0 0 20px purple;
+    margin-bottom: 30px;
 }
 
+/* Upload Section */
 .upload-container {
     border: 2px dashed white;
     background-color: rgba(255, 255, 255, 0.2);
     color: white;
     border-radius: 15px;
     padding: 30px;
-    cursor: pointer;
+    transition: 0.3s ease;
+}
 
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
+.upload-container:hover {
+    background-color: rgba(255, 255, 255, 0.3);
+    transform: scale(1.02);
+}
+
+.para {
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: #ddd;
 }
 
 #fileElem {
-    display: none; /* HIDE the file input */
+    display: none;
 }
 
 #video-preview {
@@ -47,76 +75,124 @@ body {
     max-height: 200px;
     border-radius: 12px;
     box-shadow: 0px 4px 8px rgba(0,0,0,0.2);
+    animation: fadeScaleIn 0.8s ease-out forwards;
+    opacity: 0;
 }
 
+/* Predict Button */
 .btn-predict {
-    background-color: purple;
+    background-color: rgb(89, 12, 89);
     color: white;
     font-weight: bold;
     border-radius: 20px;
     font-size: 1.2rem;
-    padding: 15px 20px;
-    box-shadow: 0 0 20px white, 0 0 40px white; /* White glow */
+    padding: 15px 25px;
     border: none;
+    cursor: pointer;
+    animation: pulse 2s infinite;
+    transition: transform 0.3s ease;
 }
 
-.progress-bar {
-    background-color: purple;
-    font-size: 20px;
+.btn-predict:hover {
+    transform: scale(1.05);
 }
 
-.glow {
-    box-shadow: 0 0 20px white, 0 0 40px white;
+/* Animations */
+@keyframes fadeScaleIn {
+    from { opacity: 0; transform: scale(0.95); }
+    to { opacity: 1; transform: scale(1); }
 }
 
-.real-background {
-    background: linear-gradient(135deg, green, darkgreen);
-    padding: 20px;
-    border-radius: 20px;
+@keyframes pulse {
+    0%   { box-shadow: 0 0 10px white, 0 0 20px purple; }
+    50%  { box-shadow: 0 0 25px white, 0 0 45px purple; }
+    100% { box-shadow: 0 0 10px white, 0 0 20px purple; }
+}
+
+/* Result Box */
+.real-background, .fake-background {
+    padding: 30px 50px;
+    border-radius: 30px;
     color: white;
     width: fit-content;
-    margin: 20px auto; /* <-- THIS centers horizontally */
-    display: flex;     /* <-- THIS makes the inner text centered */
-    justify-content: center;
-    align-items: center;
-    flex-direction: column;
-    font-family: Cambria, Cochin, Georgia, Times, 'Times New Roman', serif;
-    font-weight: normal;
-}
-
-.fake-background {
-    background: linear-gradient(135deg, red, darkred);
-    padding: 20px;
-    border-radius: 20px;
-    color: white;
-    width: fit-content;
-    margin: 20px auto; /* <-- THIS centers horizontally */
-    display: flex;     /* <-- THIS makes the inner text centered */
-    justify-content: center;
-    align-items: center;
+    margin: 40px auto;
+    display: flex;
     flex-direction: column;
-    font-family: Cambria, Cochin, Georgia, Times, 'Times New Roman', serif;
+    justify-content: center;
+    align-items: center;
+    font-family: 'Orbitron', sans-serif;
+    font-size: 28px;
+    font-weight: bold;
+    letter-spacing: 1.2px;
+    animation: popFade 0.6s ease-out forwards, glowBox 1.5s infinite alternate;
+    opacity: 0;
+    text-align: center;
 }
 
 .real-flutter, .fake-flutter {
-    font-size: 100px;
-    animation: glow 1.5s infinite alternate;
-    text-shadow: 0 0 10px white, 0 0 20px white;
+    font-size: 110px;
+    animation: none;
+    text-shadow: none;
+    margin-bottom: 10px;
 }
 
-@keyframes glow {
-    from {
-        text-shadow: 0 0 2px white, 0 0 2px white, 0 0 2px white;
-        opacity: 0.8;
+.real-background {
+    background: linear-gradient(135deg, #00cc66, #004d33);
+}
+.real-flutter::before {
+    content: "✅ ";
+}
+
+.fake-background {
+    background: linear-gradient(135deg, #ff0033, #4d0000);
+}
+.fake-flutter::before {
+    content: "❌ ";
+}
+
+@keyframes popFade {
+    0% {
+        transform: scale(0.8);
+        opacity: 0;
     }
-    to {
-        text-shadow: 0 0 2px white, 0 0 2px white, 0 0 2px white;
+    100% {
+        transform: scale(1);
         opacity: 1;
     }
 }
 
-.choose-another {
-    font-size: 20px;
+@keyframes glowBox {
+    from {
+        box-shadow: 0 0 15px rgba(255, 255, 255, 0.3), 0 0 25px rgba(255, 255, 255, 0.1);
+    }
+    to {
+        box-shadow: 0 0 25px rgba(255, 255, 255, 0.6), 0 0 50px rgba(255, 255, 255, 0.3);
+    }
+}
+
+.spinner-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100vh;
+    width: 100vw;
+    background-color: rgba(21, 3, 38, 0.85);
+    z-index: 9999;
+    display: none;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    animation: fadeIn 0.5s ease-in-out;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: scale(0.95); }
+    to { opacity: 1; transform: scale(1); }
 }
 
 
