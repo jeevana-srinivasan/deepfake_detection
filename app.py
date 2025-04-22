@@ -77,11 +77,17 @@ def upload_and_reencode():
         '-y'  # Overwrite
     ]
     try:
-        subprocess.run(command, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        result = subprocess.run(command, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+        stderr_output = result.stderr
+        print("FFmpeg stderr:", stderr_output)
+        if "Audio:" not in stderr_output:
+            return jsonify({'success': False, 'error': 'No audio stream found in the video.'})
+        if result.returncode != 0:
+            return jsonify({'success': False, 'error': result.stderr}), 500
         reencoded_url = '/reencoded/' + output_filename
         return jsonify({'success': True, 'reencoded_url': reencoded_url})
-    except subprocess.CalledProcessError as e:
-        return jsonify({'success': False, 'error': str(e)})
+    except Exception as e:
+        return jsonify({'success': False, 'error': f'Server Exception: {str(e)}'}), 500
 
 # Route to serve re-encoded videos
 @app.route('/reencoded/<path:filename>')
