@@ -103,7 +103,11 @@
             videoPreview.style.animation = 'fadeScaleIn 0.8s ease-out forwards';
             predictBtn.style.display = 'inline-block';
           } else {
-            alert("Error during upload/re-encoding: " + data.error);
+            if (data.error.includes("No audio stream")) {
+                alert("This video does not contain any audio. Please upload a video with an audio stream.");
+            } else {
+                alert("Error during upload/re-encoding: " + data.error);
+            }
           }
         })
         .catch(error => {
